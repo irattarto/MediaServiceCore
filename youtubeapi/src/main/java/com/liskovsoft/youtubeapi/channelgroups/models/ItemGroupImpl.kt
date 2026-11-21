@@ -1,6 +1,5 @@
 package com.liskovsoft.youtubeapi.channelgroups.models
 
-import com.liskovsoft.googleapi.youtubedata3.impl.ItemMetadata
 import com.liskovsoft.mediaserviceinterfaces.data.ItemGroup
 import com.liskovsoft.mediaserviceinterfaces.data.ItemGroup.Item
 import com.liskovsoft.mediaserviceinterfaces.data.MediaItem
@@ -103,18 +102,6 @@ internal data class ItemGroupImpl(
             val badge = Helpers.parseStr(split, 4)
 
             return ItemGroupImpl(id, title, groupIconUrl, items, badge)
-        }
-
-        @JvmStatic
-        fun fromMetadata(metadata: ItemMetadata): ItemGroup? {
-            val playlistId = metadata.playlistId
-            val title = metadata.title
-            if (playlistId == null || title == null)
-                return null
-
-            return ItemGroupImpl(
-                playlistId, title, metadata.cardImageUrl, mutableListOf(), metadata.itemCount?.let { "$it videos" }
-            )
         }
 
         @JvmStatic

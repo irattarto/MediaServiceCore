@@ -1,6 +1,5 @@
 package com.liskovsoft.mediaserviceinterfaces;
 
-import com.liskovsoft.mediaserviceinterfaces.data.DeArrowData;
 import com.liskovsoft.mediaserviceinterfaces.data.DislikeData;
 import com.liskovsoft.mediaserviceinterfaces.data.FeedbackEndpoint;
 import com.liskovsoft.mediaserviceinterfaces.data.FeedbackReasons;
@@ -9,6 +8,7 @@ import com.liskovsoft.mediaserviceinterfaces.data.MediaItemFormatInfo;
 import com.liskovsoft.mediaserviceinterfaces.data.MediaItemMetadata;
 import com.liskovsoft.mediaserviceinterfaces.data.MediaItemStoryboard;
 import com.liskovsoft.mediaserviceinterfaces.data.PlaylistInfo;
+import com.liskovsoft.mediaserviceinterfaces.data.SponsorSegment;
 import io.reactivex.Observable;
 
 import java.util.List;
@@ -84,8 +84,11 @@ public interface MediaItemService {
     Observable<Void> removePlaylistObserve(String playlistId);
     Observable<Void> createPlaylistObserve(String playlistName, String videoId);
     Observable<Void> createPlaylistObserve(String playlistName, MediaItem item);
-    Observable<DeArrowData> getDeArrowDataObserve(String videoId);
-    Observable<DeArrowData> getDeArrowDataObserve(List<String> videoIds);
+    /**
+     * SmartFin: SponsorBlock lookup by hash prefix (the video id itself is never sent)
+     */
+    Observable<List<SponsorSegment>> getSponsorSegmentsObserve(String videoId, Set<String> categories);
+    Observable<Boolean> testSponsorBlockServerObserve(String serverUrl);
     Observable<DislikeData> getDislikeDataObserve(String videoId);
     Observable<String> getUnlocalizedTitleObserve(String videoId);
 }

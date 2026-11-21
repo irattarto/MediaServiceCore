@@ -1,9 +1,9 @@
 package com.liskovsoft.youtubeapi.channelgroups
 
 import android.net.Uri
-import com.liskovsoft.googleapi.youtubedata3.YouTubeDataServiceInt
 import com.liskovsoft.mediaserviceinterfaces.ChannelGroupService
 import com.liskovsoft.mediaserviceinterfaces.data.ItemGroup
+import com.liskovsoft.youtubeapi.browse.v2.ChannelMetadataService
 import com.liskovsoft.mediaserviceinterfaces.data.ItemGroup.Item
 import com.liskovsoft.sharedutils.helpers.Helpers
 import com.liskovsoft.sharedutils.rx.RxHelper
@@ -211,9 +211,9 @@ internal object ChannelGroupServiceImpl: MediaServicePrefs.ProfileChangeListener
             val newChannel = if (channelId == realCachedChannel?.channelId)
                 realCachedChannel
             else if (title == null || iconUrl == null) {
-                val channelMetadata = YouTubeDataServiceInt.getChannelMetadata(channelId)
-                val metadata = channelMetadata?.firstOrNull()
-                ItemImpl(channelId, metadata?.title ?: title, metadata?.cardImageUrl ?: iconUrl)
+                // SmartFin: missing title/icon from YouTube's own browse API (was the YouTube Data API)
+                val info = ChannelMetadataService.getChannelInfo(channelId)
+                ItemImpl(channelId, title ?: info?.title, iconUrl ?: info?.iconUrl)
             } else
                 ItemImpl(channelId, title, iconUrl)
             group.add(newChannel)

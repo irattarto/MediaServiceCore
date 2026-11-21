@@ -4,8 +4,8 @@ import android.net.Uri
 import com.google.gson.Gson
 import com.google.gson.JsonSyntaxException
 import com.google.gson.reflect.TypeToken
-import com.liskovsoft.googleapi.youtubedata3.YouTubeDataServiceInt
 import com.liskovsoft.mediaserviceinterfaces.data.ItemGroup
+import com.liskovsoft.youtubeapi.browse.v2.ChannelMetadataService
 import com.liskovsoft.mediaserviceinterfaces.data.ItemGroup.Item
 import com.liskovsoft.youtubeapi.channelgroups.importing.GroupImportService
 import com.liskovsoft.youtubeapi.channelgroups.importing.newpipe.gen.NewPipeSubscriptionsGroup
@@ -43,11 +43,14 @@ internal object NewPipeService: GroupImportService {
         // channel url: https://www.youtube.com/channel/UCbWcXB0PoqOsAvAdfzWMf0w
         response.subscriptions?.forEach { items.add(ItemImpl(channelId = YouTubeHelper.extractChannelId(Uri.parse(it.url)), title = it.name)) }
 
-        // Get channels thumbs and titles
-        val metadata = YouTubeDataServiceInt.getChannelMetadata(*items.mapNotNull { it.channelId }.toTypedArray())
-        val newItems = metadata?.map { ItemImpl(it.channelId, it.title, it.cardImageUrl) }
+        // SmartFin: channel icons (and current titles) from YouTube's own browse API. Upstream used the YouTube Data API
+        // with a key downloaded from upstream's GitHub at runtime. The names from the NewPipe export are the fallback.
+        val newItems: MutableList<Item> = items.map { item ->
+            val info = ChannelMetadataService.getChannelInfo(item.channelId)
+            ItemImpl(item.channelId, info?.title ?: item.title, info?.iconUrl ?: item.iconUrl)
+        }.toMutableList()
 
-        result.add(ItemGroupImpl(title = NewPipeSubscriptionsGroup::subscriptions.name, items = newItems?.toMutableList() ?: items))
+        result.add(ItemGroupImpl(title = NewPipeSubscriptionsGroup::subscriptions.name, items = newItems))
 
         return result
     }

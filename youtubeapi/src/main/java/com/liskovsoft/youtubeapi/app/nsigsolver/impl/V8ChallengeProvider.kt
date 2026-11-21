@@ -19,7 +19,7 @@ internal object V8ChallengeProvider: JsRuntimeChalBaseJCP() {
 
     override fun iterScriptSources(): Sequence<Pair<ScriptSource, (ScriptType) -> Script?>> = sequence {
         for ((source, func) in super.iterScriptSources()) {
-            if (source == ScriptSource.WEB || source == ScriptSource.BUILTIN)
+            if (source == ScriptSource.BUILTIN)
                 yield(Pair(ScriptSource.BUILTIN, ::v8NpmSource))
             yield(Pair(source, func))
         }

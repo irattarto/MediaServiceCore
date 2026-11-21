@@ -19,7 +19,6 @@ internal abstract class JsRuntimeChalBaseJCP: JsChallengeProvider() {
     protected val cacheSection = "challenge-solver"
 
     private val jcpGuideUrl = "https://github.com/yt-dlp/yt-dlp/wiki/YouTube-JS-Challenges"
-    private val repository = "yt-dlp/ejs"
     override val supportedTypes = listOf(JsChallengeType.N, JsChallengeType.SIG)
     protected val scriptVersion = "0.0.1"
     protected val libPrefix = "nsigsolver/"
@@ -27,11 +26,6 @@ internal abstract class JsRuntimeChalBaseJCP: JsChallengeProvider() {
     private val scriptFilenames = mapOf(
         ScriptType.LIB to "${libPrefix}yt.solver.lib.js",
         ScriptType.CORE to "${libPrefix}yt.solver.core.js"
-    )
-
-    private val minScriptFilenames = mapOf(
-        ScriptType.LIB to "yt.solver.lib.min.js",
-        ScriptType.CORE to "yt.solver.core.min.js"
     )
 
     protected abstract fun runJsRuntime(stdin: String): String
@@ -144,33 +138,18 @@ internal abstract class JsRuntimeChalBaseJCP: JsChallengeProvider() {
         throw JsChallengeProviderRejectedRequest("No usable challenge solver ${scriptType.value} script available")
     }
 
+    /**
+     * SmartFin: only the scripts bundled in the APK are used. Upstream also ran a cached copy or, as a fallback,
+     * JavaScript downloaded from GitHub (github.com/yt-dlp/ejs releases) without any integrity check.
+     */
     protected open fun iterScriptSources(): Sequence<Pair<ScriptSource, (scriptType: ScriptType) -> Script?>> = sequence {
-        yieldAll(listOf(
-            Pair(ScriptSource.CACHE, ::cachedSource),
-            Pair(ScriptSource.BUILTIN, ::builtinSource),
-            Pair(ScriptSource.WEB, ::webReleaseSource)
-        ))
-    }
-
-    private fun cachedSource(scriptType: ScriptType): Script? {
-        val data = ie.cache.load(cacheSection, scriptType.value) ?: return null
-        return Script(scriptType,
-            ScriptVariant.valueOf(data.variant ?: "unknown"), ScriptSource.CACHE, data.version ?: "unknown", data.code)
+        yield(Pair(ScriptSource.BUILTIN, ::builtinSource))
     }
 
     private fun builtinSource(scriptType: ScriptType): Script? {
         val fileName = scriptFilenames[scriptType] ?: return null
         val code = loadScript(fileName, "Failed to read builtin challenge solver ${scriptType.value}")
         return Script(scriptType, ScriptVariant.UNMINIFIED, ScriptSource.BUILTIN, scriptVersion, code)
-    }
-
-    private fun webReleaseSource(scriptType: ScriptType): Script? {
-        val fileName = minScriptFilenames[scriptType] ?: return null
-        val url = "https://github.com/$repository/releases/download/$scriptVersion/$fileName"
-        val code = ie.downloadWebpageWithRetries(url, "[${tag}] Failed to download challenge solver ${scriptType.value} script")
-        Log.d(tag, "[${tag}] Downloading challenge solver ${scriptType.value} script from $url")
-        ie.cache.store(cacheSection, scriptType.value, CachedData(code))
-        return Script(scriptType, ScriptVariant.MINIFIED, ScriptSource.WEB, scriptVersion, code)
     }
 
     // endregion: challenge solver script

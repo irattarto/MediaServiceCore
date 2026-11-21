@@ -4,7 +4,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.liskovsoft.mediaserviceinterfaces.MediaItemService;
-import com.liskovsoft.mediaserviceinterfaces.data.DeArrowData;
 import com.liskovsoft.mediaserviceinterfaces.data.DislikeData;
 import com.liskovsoft.mediaserviceinterfaces.data.FeedbackEndpoint;
 import com.liskovsoft.mediaserviceinterfaces.data.FeedbackReasons;
@@ -13,13 +12,14 @@ import com.liskovsoft.mediaserviceinterfaces.data.MediaItemFormatInfo;
 import com.liskovsoft.mediaserviceinterfaces.data.MediaItemMetadata;
 import com.liskovsoft.mediaserviceinterfaces.data.MediaItemStoryboard;
 import com.liskovsoft.mediaserviceinterfaces.data.PlaylistInfo;
+import com.liskovsoft.mediaserviceinterfaces.data.SponsorSegment;
 import com.liskovsoft.sharedutils.helpers.Helpers;
 import com.liskovsoft.sharedutils.mylogger.Log;
 import com.liskovsoft.sharedutils.rx.RxHelper;
 import com.liskovsoft.youtubeapi.actions.ActionsService;
 import com.liskovsoft.youtubeapi.actions.ActionsServiceWrapper;
 import com.liskovsoft.youtubeapi.common.models.impl.mediaitem.BaseMediaItem;
-import com.liskovsoft.youtubeapi.dearrow.DeArrowService;
+import com.liskovsoft.youtubeapi.block.SponsorBlockService;
 import com.liskovsoft.youtubeapi.feedback.FeedbackService;
 import com.liskovsoft.youtubeapi.next.v2.WatchNextService;
 import com.liskovsoft.youtubeapi.next.v2.WatchNextServiceWrapper;
@@ -444,25 +444,13 @@ public class YouTubeMediaItemService implements MediaItemService {
     }
 
     @Override
-    public Observable<DeArrowData> getDeArrowDataObserve(String videoId) {
-        return RxHelper.fromCallable(() -> getDeArrowData(videoId));
+    public Observable<List<SponsorSegment>> getSponsorSegmentsObserve(String videoId, Set<String> categories) {
+        return RxHelper.fromCallable(() -> SponsorBlockService.instance().getSegments(videoId, categories));
     }
 
     @Override
-    public Observable<DeArrowData> getDeArrowDataObserve(List<String> videoIds) {
-        return RxHelper.create(emitter -> {
-            for (String videoId : videoIds) {
-                DeArrowData result = getDeArrowData(videoId);
-                if (result != null) {
-                    emitter.onNext(result);
-                }
-            }
-            emitter.onComplete();
-        });
-    }
-
-    private DeArrowData getDeArrowData(String videoId) {
-        return DeArrowService.getData(videoId);
+    public Observable<Boolean> testSponsorBlockServerObserve(String serverUrl) {
+        return RxHelper.fromCallable(() -> SponsorBlockService.instance().testServer(serverUrl));
     }
 
     @Override
